@@ -160,9 +160,12 @@ module Rules = {
     | None => (None, address)
     };
 
-  let rules = [hash, querystring, pathname, auth, host, port, hostname];
-
-  let rec exec = (~rules=rules, ~results=[], address) =>
+  let rec exec =
+          (
+            ~rules=[hash, querystring, pathname, auth, host, port, hostname],
+            ~results=[],
+            address,
+          ) =>
     switch (rules) {
     | [rule, ...rules] =>
       let (result, address) = rule(address);
@@ -244,9 +247,8 @@ let extractProtocol = address => {
 
 let fromString = address => {
   let (protocol, slashes, rest) = extractProtocol(address);
-  /* Js.log3(protocol, slashes, rest); */
   let relative = Option.isNone(protocol) && slashes === false;
-  /* Js.log(relative); */
+
   let rest =
     switch (rest) {
     | Some(address) => address
@@ -255,16 +257,7 @@ let fromString = address => {
 
   let [hostname, port, host, auth, pathname, querystring, hash] =
     Rules.exec(rest);
-  /* Js.log(result); */
 
-  /* let (hash, rest) = Rules.hash(rest);
-     let (querystring, rest) = Rules.querystring(rest);
-     let rest = Rules.sanitize(rest);
-     let (pathname, rest) = Rules.pathname(rest);
-     let (auth, rest) = Rules.auth(rest);
-     let (host, rest) = Rules.host(rest);
-     let (port, rest) = Rules.port(rest);
-     let (hostname, rest) = Rules.hostname(rest); */
   /* TODO: parse query */
   /* TODO: resolve relative */
 
