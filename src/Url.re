@@ -270,7 +270,9 @@ let toString = url => {
   )
   ++ (url.slashes ? "//" : "")
   ++ Option.mapWithDefault(url.username, "", username =>
-       username ++ ":" ++ Option.getWithDefault(url.password, "") ++ "@"
+       username
+       ++ Option.mapWithDefault(url.password, "", password => ":" ++ password)
+       ++ "@"
      )
   ++ Option.getWithDefault(url.host, "")
   ++ Option.getWithDefault(url.pathname, "")
