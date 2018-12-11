@@ -160,9 +160,9 @@ module Rules = {
     | None => (None, address)
     };
 
-  let order = [hash, querystring, pathname, auth, host, port, hostname];
+  let rules = [hash, querystring, pathname, auth, host, port, hostname];
 
-  let rec exec = (~rules=order, ~results=[], address) =>
+  let rec exec = (~rules=rules, ~results=[], address) =>
     switch (rules) {
     | [rule, ...rules] =>
       let (result, address) = rule(address);
