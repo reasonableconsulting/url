@@ -3,10 +3,16 @@
 {
   "name": "@reasonableconsulting/url",
   "version": "0.0.0",
-  "sources": {
-    "dir": "src",
-    "subdirs": true
-  },
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "example",
+      "dev": true
+    }
+  ],
   "package-specs": {
     "module": "commonjs",
     "in-source": true
