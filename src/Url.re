@@ -27,6 +27,12 @@ module Option = {
     | Some(value) => value
     | None => default
     };
+
+  let mapWithDefault = (opt, default, fn) =>
+    switch (opt) {
+    | Some(value) => fn(value)
+    | None => default
+    };
 };
 
 module Str = {
@@ -48,6 +54,19 @@ module Str = {
     switch (String.length(str)) {
     | exception (Invalid_argument(_)) => None
     | len => Some(len)
+    };
+
+  let startsWith = (str, chr) =>
+    switch (String.index(str, chr)) {
+    | exception Not_found => false
+    | index => index === 0
+    };
+
+  let endsWith = (str, chr) =>
+    switch (String.rindex(str, chr), String.length(str)) {
+    | exception Not_found => false
+    | exception (Invalid_argument(_)) => false
+    | (index, length) => index === length - 1
     };
 
   let sliceToEnd = (str, start) =>
@@ -245,6 +264,23 @@ let extractProtocol = address => {
      return path.join('/');
    } */
 
+let toString = url => {
+  Option.mapWithDefault(url.protocol, "", protocol =>
+    Str.endsWith(protocol, ':') ? protocol : protocol ++ ":"
+  )
+  ++ (url.slashes ? "//" : "")
+  ++ Option.mapWithDefault(url.username, "", username =>
+       username ++ ":" ++ Option.getWithDefault(url.password, "") ++ "@"
+     )
+  ++ Option.getWithDefault(url.host, "")
+  ++ Option.getWithDefault(url.pathname, "")
+  /* TODO: Handle query serialization */
+  ++ Option.mapWithDefault(url.querystring, "", querystring =>
+       Str.startsWith(querystring, '?') ? querystring : "?" ++ querystring
+     )
+  ++ Option.getWithDefault(url.hash, "");
+};
+
 let fromString = address => {
   let (protocol, slashes, rest) = extractProtocol(address);
   let relative = Option.isNone(protocol) && slashes === false;
@@ -288,11 +324,9 @@ let fromString = address => {
     | _ => None
     };
 
-  /* TODO: toString */
-  let href = "";
-
   let url = {
-    href,
+    /* Temporary placeholder of href so we can call toString on the url */
+    href: "",
     protocol,
     slashes,
     origin,
@@ -306,13 +340,6 @@ let fromString = address => {
     querystring,
     hash,
   };
-  Js.log2(url, rest);
-};
 
-fromString("https://user:pass@wat.com:443/wat?wat=2#wat");
-/*
- let make = (~slashes, ~relative, ~protocol) => {
-   {
-     slashes: s
-   }
- } */
+  {...url, href: toString(url)};
+};
