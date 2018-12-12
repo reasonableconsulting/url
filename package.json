@@ -4,7 +4,8 @@
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
-    "clean": "bsb -clean-world"
+    "clean": "bsb -clean-world",
+    "test": "npm run clean && npm run build && jest --testMatch '**/test/*.js'"
   },
   "keywords": [
     "BuckleScript"
@@ -12,6 +13,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "bs-platform": "^4.0.8"
+    "@glennsl/bs-jest": "^0.4.5",
+    "bs-platform": "^4.0.8",
+    "jest": "^23.6.0"
   }
 }

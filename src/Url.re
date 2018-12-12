@@ -16,6 +16,12 @@ type t = {
 };
 
 module Option = {
+  let isSome = opt =>
+    switch (opt) {
+    | Some(_) => true
+    | None => false
+    };
+
   let isNone = opt =>
     switch (opt) {
     | None => true
@@ -45,6 +51,45 @@ module Option = {
     | Some(value) => fn(value)
     | None => None
     };
+};
+
+module Arr = {
+  let pop = arr =>
+    switch (Array.sub(arr, 0, Array.length(arr) - 1)) {
+    | exception (Invalid_argument(_)) => arr
+    | arr => arr
+    };
+
+  let tl = arr =>
+    switch (Array.sub(arr, 1, Array.length(arr) - 1)) {
+    | exception (Invalid_argument(_)) => [||]
+    | arr => arr
+    };
+
+  let join = (arr, sep) =>
+    Array.fold_left(
+      (result, part) => result ++ sep ++ part,
+      arr[0],
+      tl(arr),
+    );
+
+  let isEmpty = arr => Array.length(arr) === 0;
+
+  let first = arr =>
+    switch (arr[0]) {
+    | exception (Invalid_argument(_)) => None
+    | el => Some(el)
+    };
+
+  let last = arr =>
+    switch (arr[Array.length(arr) - 1]) {
+    | exception (Invalid_argument(_)) => None
+    | el => Some(el)
+    };
+
+  let reduceRight = (arr, start, fn) => {
+    Array.fold_right((part, result) => fn(result, part), arr, start);
+  };
 };
 
 module Str = {
@@ -87,13 +132,13 @@ module Str = {
     | None => None
     };
 
-  let split = (str, chr) => {
+  let rec split = (str, chr) => {
     switch (index(str, chr)) {
     | Some(index) =>
-      let beginChunk = slice(str, 0, index);
-      let endChunk = sliceToEnd(str, index + 1);
-      [|beginChunk, endChunk|];
-    | None => [|Some(str)|]
+      let beginChunk = Option.getWithDefault(slice(str, 0, index), "");
+      let endChunk = Option.getWithDefault(sliceToEnd(str, index + 1), "");
+      Array.append([|beginChunk|], split(endChunk, chr));
+    | None => [|str|]
     };
   };
 
@@ -215,16 +260,17 @@ module Rules = {
 let requiresPort = (port, protocol) => {
   switch (port, protocol) {
   | (Some(port), Some(protocol)) =>
+    /* TODO: Handle throw on empty array */
     let protocol = Str.split(protocol, ':')[0];
 
     switch (protocol) {
-    | Some("http")
-    | Some("ws") => port !== 80
-    | Some("https")
-    | Some("wss") => port !== 443
-    | Some("ftp") => port !== 21
-    | Some("gopher") => port !== 70
-    | Some("file") => false
+    | "http"
+    | "ws" => port !== 80
+    | "https"
+    | "wss" => port !== 443
+    | "ftp" => port !== 21
+    | "gopher" => port !== 70
+    | "file" => false
     | _ => port !== 0
     };
   | _ => false
@@ -256,31 +302,86 @@ let extractProtocol = address => {
   };
 };
 
-/* let resolve = (relative, base) => {
-     var path = (base || '/').split('/').slice(0, -1).concat(relative.split('/'))
-       , i = path.length
-       , last = path[i - 1]
-       , unshift = false
-       , up = 0;
+let isAbsolute = str => Str.startsWith(str, '/');
 
-     while (i--) {
-       if (path[i] === '.') {
-         path.splice(i, 1);
-       } else if (path[i] === '..') {
-         path.splice(i, 1);
-         up++;
-       } else if (up) {
-         if (i === 0) unshift = true;
-         path.splice(i, 1);
-         up--;
-       }
-     }
+/* TODO: This needs massive cleanup */
+/* Logic from https://github.com/mjackson/resolve-pathname/blob/master/modules/index.js */
+let resolvePathname = (~to_=?, ~from=?, ()) => {
+  let toParts = Option.mapWithDefault(to_, [||], to_ => Str.split(to_, '/'));
+  let fromParts =
+    Option.mapWithDefault(from, [||], from => Str.split(from, '/'));
 
-     if (unshift) path.unshift('');
-     if (last === '.' || last === '..') path.push('');
+  let isToAbsolute = Option.mapWithDefault(to_, false, isAbsolute);
+  let isFromAbsolute = Option.mapWithDefault(from, false, isAbsolute);
+  let mustEndAbsolute = isToAbsolute || isFromAbsolute;
 
-     return path.join('/');
-   } */
+  let fromParts =
+    if (isToAbsolute) {
+      toParts;
+    } else if (Option.isSome(to_)) {
+      Arr.pop(fromParts)->Array.append(toParts);
+    } else {
+      fromParts;
+    };
+
+  if (Arr.isEmpty(fromParts)) {
+    "/";
+  } else {
+    let lastSegment = Arr.last(fromParts);
+    let hasTrailingSlash =
+      switch (lastSegment) {
+      | Some(".")
+      | Some("..")
+      | Some("") => true
+      | _ => false
+      };
+
+    let up = ref(0);
+    let fromParts =
+      Arr.reduceRight(fromParts, [||], (result, part) =>
+        switch (part) {
+        | "." => result
+        | ".." =>
+          up := up^ + 1;
+          result;
+        | part =>
+          if (up^ > 0) {
+            up := up^ - 1;
+            result;
+          } else {
+            Array.append([|part|], result);
+          }
+        }
+      );
+
+    let fromParts =
+      if (!mustEndAbsolute) {
+        Array.append(Array.make(up^, ".."), fromParts);
+      } else {
+        fromParts;
+      };
+
+    let fromParts =
+      if (mustEndAbsolute) {
+        switch (Arr.first(fromParts)) {
+        | Some(part) =>
+          part !== "" && !isAbsolute(part) ?
+            Array.append([|""|], fromParts) : fromParts
+        | None => Array.append([|""|], fromParts)
+        };
+      } else {
+        fromParts;
+      };
+
+    let result = Arr.join(fromParts, "/");
+
+    if (hasTrailingSlash && !Str.endsWith(result, '/')) {
+      result ++ "/";
+    } else {
+      result;
+    };
+  };
+};
 
 let toString = url => {
   Option.mapWithDefault(url.protocol, "", protocol =>
@@ -320,6 +421,12 @@ let make =
 
   /* TODO: parse query */
   /* TODO: resolve relative */
+  /* let pathname =
+     if (relative /* && location.slashes
+            && !Str.startsWith(url.pathname, '/')
+            && (pathname !== '' || location.pathname !== '') */) {
+       resolvePathname(pathname, location.pathname);
+     }; */
 
   let (host, port) =
     requiresPort(port, protocol) === false ?
@@ -328,8 +435,12 @@ let make =
   let (username, password) =
     switch (auth) {
     | Some(auth) =>
-      let result = Str.split(auth, ':');
-      (result[0], result[1]);
+      /* TODO: this probably can be cleaned up */
+      switch (Str.split(auth, ':')) {
+      | [|username, password|] => (Some(username), Some(password))
+      | [|username|] => (Some(username), None)
+      | _ => (username, password)
+      }
     | None => (username, password)
     };
 
