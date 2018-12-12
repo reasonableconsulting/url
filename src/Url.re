@@ -33,6 +33,12 @@ module Option = {
     | Some(value) => fn(value)
     | None => default
     };
+
+  let map = (opt, fn) =>
+    switch (opt) {
+    | Some(value) => Some(fn(value))
+    | None => None
+    };
 };
 
 module Str = {
@@ -283,29 +289,25 @@ let toString = url => {
   ++ Option.getWithDefault(url.hash, "");
 };
 
-let fromString = address => {
-  let (protocol, slashes, rest) = extractProtocol(address);
+let make =
+    (
+      ~protocol=?,
+      ~slashes=false,
+      ~host=?,
+      ~hostname=?,
+      ~port=?,
+      ~auth=?,
+      ~username=?,
+      ~password=?,
+      ~pathname=?,
+      ~querystring=?,
+      ~hash=?,
+      (),
+    ) => {
   let relative = Option.isNone(protocol) && slashes === false;
-
-  let rest =
-    switch (rest) {
-    | Some(address) => address
-    | None => ""
-    };
-
-  let [hostname, port, host, auth, pathname, querystring, hash] =
-    Rules.exec(rest);
 
   /* TODO: parse query */
   /* TODO: resolve relative */
-
-  let port =
-    switch (port) {
-    | Some(port) =>
-      /* TODO: handle throw */
-      Some(int_of_string(port))
-    | None => None
-    };
 
   let (host, port) =
     requiresPort(port, protocol) === false ?
@@ -316,7 +318,7 @@ let fromString = address => {
     | Some(auth) =>
       let result = Str.split(auth, ':');
       (result[0], result[1]);
-    | None => (None, None)
+    | None => (username, password)
     };
 
   let origin =
@@ -344,4 +346,29 @@ let fromString = address => {
   };
 
   {...url, href: toString(url)};
+};
+
+let fromString = address => {
+  let (protocol, slashes, rest) = extractProtocol(address);
+
+  let rest = Option.getWithDefault(rest, "");
+
+  let [hostname, port, host, auth, pathname, querystring, hash] =
+    Rules.exec(rest);
+
+  /* TODO: handle int_of_string throw */
+  let port = Option.map(port, port => int_of_string(port));
+
+  make(
+    ~protocol?,
+    ~slashes,
+    ~host?,
+    ~hostname?,
+    ~port?,
+    ~auth?,
+    ~pathname?,
+    ~querystring?,
+    ~hash?,
+    (),
+  );
 };
