@@ -38,7 +38,7 @@ describe("resolvePathname", () => {
   );
 
   /* Copied from node's test/parallel/test-url.js */
-  let nodeURLResolveTestCases = [|
+  let nodeURLResolveTestCases = [
     ("/foo/bar/baz", "quux", "/foo/bar/quux"),
     ("/foo/bar/baz", "quux/asdf", "/foo/bar/quux/asdf"),
     ("/foo/bar/baz", "quux/baz", "/foo/bar/quux/baz"),
@@ -83,11 +83,12 @@ describe("resolvePathname", () => {
     ("/foo/bar/baz", "/../etc/passwd", "/etc/passwd"),
     /* ("http://localhost", "file:///Users/foo", "file:///Users/foo"), */
     /* ("http://localhost", "file://foo/Users", "file://foo/Users"), */
-  |];
+  ];
 
-  Belt.Array.forEach(nodeURLResolveTestCases, ((from, to_, expected)) =>
-    test({j|resolvePathname($to_, $from) == $expected|j}, () =>
-      expect(resolvePathname(~to_, ~from, ())) |> toEqual(expected)
-    )
+  testAll(
+    "resolvePathname(~to_, ~from) === expected",
+    nodeURLResolveTestCases,
+    ((from, to_, expected)) =>
+    expect(resolvePathname(~to_, ~from, ())) |> toEqual(expected)
   );
 });
