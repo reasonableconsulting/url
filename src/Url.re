@@ -39,6 +39,12 @@ module Option = {
     | Some(value) => Some(fn(value))
     | None => None
     };
+
+  let flatMap = (opt, fn) =>
+    switch (opt) {
+    | Some(value) => fn(value)
+    | None => None
+    };
 };
 
 module Str = {
@@ -112,6 +118,12 @@ module Str = {
     | None => (None, str)
     };
   };
+
+  let toInt = str =>
+    switch (int_of_string(str)) {
+    | exception (Failure(_)) => None
+    | value => Some(value)
+    };
 };
 
 /* TODO: How does these behave with a native compilation target? */
@@ -356,8 +368,7 @@ let fromString = address => {
   let [hostname, port, host, auth, pathname, querystring, hash] =
     Rules.exec(rest);
 
-  /* TODO: handle int_of_string throw */
-  let port = Option.map(port, port => int_of_string(port));
+  let port = Option.flatMap(port, Str.toInt);
 
   make(
     ~protocol?,
