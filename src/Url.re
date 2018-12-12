@@ -60,20 +60,11 @@ module Arr = {
     | arr => arr
     };
 
-  let tl = arr =>
+  let tail = arr =>
     switch (Array.sub(arr, 1, Array.length(arr) - 1)) {
     | exception (Invalid_argument(_)) => [||]
     | arr => arr
     };
-
-  let join = (arr, sep) =>
-    Array.fold_left(
-      (result, part) => result ++ sep ++ part,
-      arr[0],
-      tl(arr),
-    );
-
-  let isEmpty = arr => Array.length(arr) === 0;
 
   let first = arr =>
     switch (arr[0]) {
@@ -87,9 +78,20 @@ module Arr = {
     | el => Some(el)
     };
 
+  let isEmpty = arr => Array.length(arr) === 0;
+
+  let reduce = (arr, start, fn) => Array.fold_left(fn, start, arr);
+
   let reduceRight = (arr, start, fn) => {
     Array.fold_right((part, result) => fn(result, part), arr, start);
   };
+
+  let join = (arr, sep) =>
+    switch (first(arr)) {
+    | None => ""
+    | Some(first) =>
+      reduce(tail(arr), first, (result, part) => result ++ sep ++ part)
+    };
 };
 
 module Str = {
@@ -260,17 +262,16 @@ module Rules = {
 let requiresPort = (port, protocol) => {
   switch (port, protocol) {
   | (Some(port), Some(protocol)) =>
-    /* TODO: Handle throw on empty array */
-    let protocol = Str.split(protocol, ':')[0];
+    let protocol = Arr.first(Str.split(protocol, ':'));
 
     switch (protocol) {
-    | "http"
-    | "ws" => port !== 80
-    | "https"
-    | "wss" => port !== 443
-    | "ftp" => port !== 21
-    | "gopher" => port !== 70
-    | "file" => false
+    | Some("http")
+    | Some("ws") => port !== 80
+    | Some("https")
+    | Some("wss") => port !== 443
+    | Some("ftp") => port !== 21
+    | Some("gopher") => port !== 70
+    | Some("file") => false
     | _ => port !== 0
     };
   | _ => false
