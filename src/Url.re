@@ -14,6 +14,21 @@ type t = {
   /* query: option(Query.t), */
   hash: option(string),
 };
+let empty = {
+  href: "",
+  protocol: None,
+  slashes: false,
+  origin: None,
+  host: None,
+  hostname: None,
+  port: None,
+  auth: None,
+  username: None,
+  password: None,
+  pathname: None,
+  querystring: None,
+  hash: None,
+};
 
 module Option = {
   let isSome = opt =>
@@ -241,7 +256,6 @@ module Rules = {
     };
 
   let host = address =>
-    /* TODO: add relative stuff? */
     if (Str.isEmpty(address)) {
       (None, address);
     } else {
@@ -270,7 +284,6 @@ module Rules = {
   };
 
   let hostname = address =>
-    /* TODO: add relative stuff? */
     if (Str.isEmpty(address)) {
       (None, address);
     } else {
@@ -431,7 +444,7 @@ let toString = url => {
   ++ Option.getWithDefault(url.hash, "");
 };
 
-let make =
+let makeWithLocation =
     (
       ~protocol=?,
       ~slashes=false,
@@ -444,18 +457,23 @@ let make =
       ~pathname=?,
       ~querystring=?,
       ~hash=?,
-      (),
+      location,
     ) => {
   let relative = Option.isNone(protocol) && slashes === false;
 
+  let location = Option.getWithDefault(location, empty);
+
+  let slashes = slashes || relative && location.slashes;
+  let protocol = Option.isSome(protocol) ? protocol : location.protocol;
+
   /* TODO: parse query */
-  /* TODO: resolve relative */
-  /* let pathname =
-     if (relative /* && location.slashes
-            && !Str.startsWith(url.pathname, '/')
-            && (pathname !== '' || location.pathname !== '') */) {
-       resolvePathname(pathname, location.pathname);
-     }; */
+
+  let pathname =
+    if (relative && location.slashes) {
+      Some(resolvePathname(~to_=?pathname, ~from=?location.pathname, ()));
+    } else {
+      pathname;
+    };
 
   let (host, port) =
     requiresPort(port, protocol) === false ?
@@ -486,9 +504,10 @@ let make =
     protocol,
     slashes,
     origin,
-    host,
-    hostname,
-    port,
+    host: relative && Option.isNone(host) ? location.host : host,
+    hostname:
+      relative && Option.isNone(hostname) ? location.hostname : hostname,
+    port: relative && Option.isNone(port) ? location.port : port,
     auth,
     username,
     password,
@@ -500,7 +519,37 @@ let make =
   {...url, href: toString(url)};
 };
 
-let fromString = address => {
+let make =
+    (
+      ~protocol=?,
+      ~slashes=false,
+      ~host=?,
+      ~hostname=?,
+      ~port=?,
+      ~auth=?,
+      ~username=?,
+      ~password=?,
+      ~pathname=?,
+      ~querystring=?,
+      ~hash=?,
+      (),
+    ) =>
+  makeWithLocation(
+    ~protocol?,
+    ~slashes,
+    ~host?,
+    ~hostname?,
+    ~port?,
+    ~auth?,
+    ~username?,
+    ~password?,
+    ~pathname?,
+    ~querystring?,
+    ~hash?,
+    None,
+  );
+
+let fromString = (~location=?, address) => {
   let (protocol, slashes, rest) = extractProtocol(address);
 
   let rest = Option.getWithDefault(rest, "");
@@ -522,7 +571,7 @@ let fromString = address => {
 
   let port = Option.flatMap(port, Str.toInt);
 
-  make(
+  makeWithLocation(
     ~protocol?,
     ~slashes,
     ~host?,
@@ -532,6 +581,6 @@ let fromString = address => {
     ~pathname?,
     ~querystring?,
     ~hash?,
-    (),
+    location,
   );
 };

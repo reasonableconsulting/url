@@ -115,12 +115,13 @@ describe("url-parse", () => {
        expect(str) |> toEqual("http://google.com/?lolcakes");
      }); */
 
-  /* test("allows a custom location object", () => {
-       let url = "/foo?foo=bar";
-       let data = Url.fromString(url, Url.fromString("http://google.com"));
+  test("allows a custom location object", () => {
+    let url = "/foo?foo=bar";
+    let data =
+      Url.fromString(~location=Url.fromString("http://google.com"), url);
 
-       expect(data.href) |> toEqual("http://google.com/foo?foo=bar");
-     }); */
+    expect(data.href) |> toEqual("http://google.com/foo?foo=bar");
+  });
 
   /* test("is blob: location aware", () => {
        let blob = {
@@ -559,167 +560,208 @@ describe("url-parse", () => {
     expect(Url.fromString(url).querystring)
     |> toEqual(Some("???&hl=en&src=api&x=2&y=2&z=3&s="));
   });
-  /* test("accepts a string as source argument", () => {
-       let data =
-         Url.fromString("/foo", "http://sub.example.com/bar?foo=bar#hash");
 
-       expect(data.port) |> toEqual("");
-       expect(data.host) |> toEqual("sub.example.com");
-       expect(data.href) |> toEqual("http://sub.example.com/foo");
-     }); */
-  /* describe("inheritance", () => {
-       test("does not inherit port numbers for non relative urls", () => {
-         let data =
-           Url.fromString(
-             "http://localhost",
-             Url.fromString("http://sub.example.com:808/"),
-           );
+  describe("accepts a string as source argument", () => {
+    let data =
+      Url.fromString(
+        ~location=Url.fromString("http://sub.example.com/bar?foo=bar#hash"),
+        "/foo",
+      );
 
-         expect(data.port) |> toEqual("");
-         expect(data.host) |> toEqual("localhost");
-         expect(data.href) |> toEqual("http://localhost");
-       });
+    test("port", () =>
+      expect(data.port) |> toEqual(None)
+    );
+    test("host", () =>
+      expect(data.host) |> toEqual(Some("sub.example.com"))
+    );
+    test("href", () =>
+      expect(data.href) |> toEqual("http://sub.example.com/foo")
+    );
+  });
+  describe("inheritance", () => {
+    describe("does not inherit port numbers for non relative urls", () => {
+      let data =
+        Url.fromString(
+          ~location=Url.fromString("http://sub.example.com:808/"),
+          "http://localhost",
+        );
 
-       test("inherits port numbers for relative urls", () => {
-         let data =
-           Url.fromString(
-             "/foo",
-             Url.fromString("http://sub.example.com:808/"),
-           );
+      test("port", () =>
+        expect(data.port) |> toEqual(None)
+      );
+      test("host", () =>
+        expect(data.host) |> toEqual(Some("localhost"))
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://localhost")
+      );
+    });
 
-         expect(data.port) |> toEqual("808");
-         expect(data.hostname) |> toEqual("sub.example.com");
-         expect(data.host) |> toEqual("sub.example.com:808");
-         expect(data.href) |> toEqual("http://sub.example.com:808/foo");
-       });
+    describe("inherits port numbers for relative urls", () => {
+      let data =
+        Url.fromString(
+          ~location=Url.fromString("http://sub.example.com:808/"),
+          "/foo",
+        );
 
-       test("inherits slashes for relative urls", () => {
-         let data =
-           Url.fromString(
-             "/foo",
-             {
-               hash: "",
-               host: "example.com",
-               hostname: "example.com",
-               href: "http://example.com/",
-               origin: "http://example.com",
-               password: "",
-               pathname: "/",
-               port: "",
-               protocol: "http:",
-               search: "",
-             },
-           );
+      test("port", () =>
+        expect(data.port) |> toEqual(Some(808))
+      );
+      test("hostname", () =>
+        expect(data.hostname) |> toEqual(Some("sub.example.com"))
+      );
+      test("host", () =>
+        expect(data.host) |> toEqual(Some("sub.example.com:808"))
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://sub.example.com:808/foo")
+      );
+    });
 
-         expect(data.slashes) |> toEqual(true);
-         expect(data.href) |> toEqual("http://example.com/foo");
+    describe("inherits slashes for relative urls", () => {
+      let data =
+        Url.fromString(
+          ~location={
+            href: "http://example.com/",
+            protocol: Some("http:"),
+            slashes: true,
+            origin: Some("http://example.com"),
+            host: Some("example.com"),
+            hostname: Some("example.com"),
+            port: None,
+            auth: None,
+            username: None,
+            password: None,
+            pathname: Some("/"),
+            querystring: None,
+            hash: None,
+          },
+          "/foo",
+        );
 
-         data =
-           Url.fromString(
-             "/foo",
-             {
-               auth: null,
-               hash: null,
-               host: "example.com",
-               hostname: "example.com",
-               href: "http://example.com/",
-               path: "/",
-               pathname: "/",
-               port: null,
-               protocol: "http:",
-               query: null,
-               search: null,
-               slashes: true,
-             },
-           );
+      test("slashes", () =>
+        expect(data.slashes) |> toEqual(true)
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://example.com/foo")
+      );
+    });
 
-         expect(data.slashes) |> toEqual(true);
-         expect(data.href) |> toEqual("http://example.com/foo");
-       });
+    describe("inherits protocol for relative protocols", () => {
+      let data =
+        Url.fromString(
+          ~location=Url.fromString("http://sub.example.com:808/"),
+          "//foo.com/foo",
+        );
 
-       test("inherits protocol for relative protocols", () => {
-         let data =
-           Url.fromString(
-             "//foo.com/foo",
-             Url.fromString("http://sub.example.com:808/"),
-           );
+      test("port", () =>
+        expect(data.port) |> toEqual(None)
+      );
+      test("host", () =>
+        expect(data.host) |> toEqual(Some("foo.com"))
+      );
+      test("protocol", () =>
+        expect(data.protocol) |> toEqual(Some("http:"))
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://foo.com/foo")
+      );
+    });
 
-         expect(data.port) |> toEqual("");
-         expect(data.host) |> toEqual("foo.com");
-         expect(data.protocol) |> toEqual("http:");
-         expect(data.href) |> toEqual("http://foo.com/foo");
-       });
+    describe("does not inherit pathname for non relative urls", () => {
+      let data =
+        Url.fromString(
+          ~location=
+            Url.fromString("http://foo:bar@sub.example.com/bar?foo=bar#hash"),
+          "http://localhost",
+        );
 
-       test("does not inherit pathname for non relative urls", () => {
-         let data =
-           Url.fromString(
-             "http://localhost",
-             Url.fromString("http://foo:bar@sub.example.com/bar?foo=bar#hash"),
-           );
+      test("port", () =>
+        expect(data.port) |> toEqual(None)
+      );
+      test("host", () =>
+        expect(data.host) |> toEqual(Some("localhost"))
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://localhost")
+      );
+    });
 
-         expect(data.port) |> toEqual("");
-         expect(data.host) |> toEqual("localhost");
-         expect(data.href) |> toEqual("http://localhost");
-       });
+    /* test("resolves pathname for relative urls", () => {
+         let data, i = 0;
+         let tests = [
+           [", "http://foo.com", ""],
+           [", "http://foo.com/", "/"],
+           ["a", "http://foo.com", "/a"],
+           ["a/", "http://foo.com", "/a/"],
+           ["b/c", "http://foo.com/a", "/b/c"],
+           ["b/c", "http://foo.com/a/", "/a/b/c"],
+           [".", "http://foo.com", "/"],
+           ["./", "http://foo.com", "/"],
+           ["./.", "http://foo.com", "/"],
+           [".", "http://foo.com/a", "/"],
+           [".", "http://foo.com/a/", "/a/"],
+           ["./", "http://foo.com/a/", "/a/"],
+           ["./.", "http://foo.com/a/", "/a/"],
+           ["./b", "http://foo.com/a/", "/a/b"],
+           ["..", "http://foo.com", "/"],
+           ["../", "http://foo.com", "/"],
+           ["../..", "http://foo.com", "/"],
+           ["..", "http://foo.com/a/b", "/"],
+           ["..", "http://foo.com/a/b/", "/a/"],
+           ["../..", "http://foo.com/a/b", "/"],
+           ["../..", "http://foo.com/a/b/", "/"],
+           ["../../../../c", "http://foo.com/a/b/", "/c"],
+           ["./../d", "http://foo.com/a/b/c", "/a/d"],
+           ["d/e/f/./../../g", "http://foo.com/a/b/c", "/a/b/d/g"]
+         ];
 
-       /* test("resolves pathname for relative urls", () => {
-            let data, i = 0;
-            let tests = [
-              [", "http://foo.com", ""],
-              [", "http://foo.com/", "/"],
-              ["a", "http://foo.com", "/a"],
-              ["a/", "http://foo.com", "/a/"],
-              ["b/c", "http://foo.com/a", "/b/c"],
-              ["b/c", "http://foo.com/a/", "/a/b/c"],
-              [".", "http://foo.com", "/"],
-              ["./", "http://foo.com", "/"],
-              ["./.", "http://foo.com", "/"],
-              [".", "http://foo.com/a", "/"],
-              [".", "http://foo.com/a/", "/a/"],
-              ["./", "http://foo.com/a/", "/a/"],
-              ["./.", "http://foo.com/a/", "/a/"],
-              ["./b", "http://foo.com/a/", "/a/b"],
-              ["..", "http://foo.com", "/"],
-              ["../", "http://foo.com", "/"],
-              ["../..", "http://foo.com", "/"],
-              ["..", "http://foo.com/a/b", "/"],
-              ["..", "http://foo.com/a/b/", "/a/"],
-              ["../..", "http://foo.com/a/b", "/"],
-              ["../..", "http://foo.com/a/b/", "/"],
-              ["../../../../c", "http://foo.com/a/b/", "/c"],
-              ["./../d", "http://foo.com/a/b/c", "/a/d"],
-              ["d/e/f/./../../g", "http://foo.com/a/b/c", "/a/b/d/g"]
-            ];
+         for (; i < tests.length; i++) {
+           data = Url.fromString(tests[i][0], tests[i][1]);
+           expect(data.pathname) |> toEqual(tests[i][2]);
+         }
+       }); */
 
-            for (; i < tests.length; i++) {
-              data = Url.fromString(tests[i][0], tests[i][1]);
-              expect(data.pathname) |> toEqual(tests[i][2]);
-            }
-          }); */
+    describe(
+      "does not inherit hashes and query strings from source object", () => {
+      let data =
+        Url.fromString(
+          ~location=Url.fromString("http://sub.example.com/bar?foo=bar#hash"),
+          "/foo",
+        );
 
-       test("does not inherit hashes and query strings from source object", () => {
-         let data =
-           Url.fromString(
-             "/foo",
-             Url.fromString("http://sub.example.com/bar?foo=bar#hash"),
-           );
+      test("port", () =>
+        expect(data.port) |> toEqual(None)
+      );
+      test("host", () =>
+        expect(data.host) |> toEqual(Some("sub.example.com"))
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://sub.example.com/foo")
+      );
+    });
 
-         expect(data.port) |> toEqual("");
-         expect(data.host) |> toEqual("sub.example.com");
-         expect(data.href) |> toEqual("http://sub.example.com/foo");
-       });
+    describe("does not inherit auth from source object", () => {
+      let base = Url.fromString("http://foo:bar@sub.example.com");
+      let data = Url.fromString(~location=base, "/foo");
 
-       test("does not inherit auth from source object", () => {
-         let base = Url.fromString("http://foo:bar@sub.example.com");
-         let data = Url.fromString("/foo", base);
-
-         expect(data.port) |> toEqual("");
-         expect(data.username) |> toEqual("");
-         expect(data.password) |> toEqual("");
-         expect(data.host) |> toEqual("sub.example.com");
-         expect(data.href) |> toEqual("http://sub.example.com/foo");
-       });
-     }); */
+      test("port", () =>
+        expect(data.port) |> toEqual(None)
+      );
+      test("username", () =>
+        expect(data.username) |> toEqual(None)
+      );
+      test("password", () =>
+        expect(data.password) |> toEqual(None)
+      );
+      test("host", () =>
+        expect(data.host) |> toEqual(Some("sub.example.com"))
+      );
+      test("href", () =>
+        expect(data.href) |> toEqual("http://sub.example.com/foo")
+      );
+    });
+  });
   /* describe("#set", () => {
        test("correctly updates the host when setting port", () => {
          let data = Url.fromString("http://google.com/foo");
