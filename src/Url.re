@@ -115,6 +115,12 @@ module Str = {
     | len => Some(len)
     };
 
+  let isEmpty = str =>
+    switch (String.length(str)) {
+    | exception (Invalid_argument(_)) => true
+    | len => len === 0
+    };
+
   let startsWith = (str, chr) =>
     switch (String.index(str, chr)) {
     | exception Not_found => false
@@ -236,13 +242,10 @@ module Rules = {
 
   let host = address =>
     /* TODO: add relative stuff? */
-    switch (Str.length(address)) {
-    | Some(length) when length > 0 => (
-        Some(Str.lowercase(address)),
-        address,
-      )
-    | Some(_) => (None, address)
-    | None => (None, address)
+    if (Str.isEmpty(address)) {
+      (None, address);
+    } else {
+      (Some(Str.lowercase(address)), address);
     };
 
   let port = address => {
@@ -268,13 +271,10 @@ module Rules = {
 
   let hostname = address =>
     /* TODO: add relative stuff? */
-    switch (Str.length(address)) {
-    | Some(length) when length > 0 => (
-        Some(Str.lowercase(address)),
-        address,
-      )
-    | Some(_) => (None, address)
-    | None => (None, address)
+    if (Str.isEmpty(address)) {
+      (None, address);
+    } else {
+      (Some(Str.lowercase(address)), address);
     };
 
   let rec exec = (~rules, ~results, address) =>
