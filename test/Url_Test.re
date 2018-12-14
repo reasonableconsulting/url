@@ -2,14 +2,49 @@ open Jest;
 open Expect;
 
 describe("url-parse", () => {
-  /* test("defaults to empty address to return valid URL instance", () => {
-       let url = Url.fromString();
+  describe("defaults to empty address to return valid URL instance", () => {
+    let url = Url.fromString("");
 
-       expect(url) |> toBe("object");
-       expect(url.pathname) |> toBe("string");
-       expect(url.host) |> toBe("string");
-       expect(url.hostname) |> toBe("string");
-     }); */
+    test("href", () =>
+      expect(url.href) |> toEqual("")
+    );
+    test("protocol", () =>
+      expect(url.protocol) |> toEqual(None)
+    );
+    test("slashes", () =>
+      expect(url.slashes) |> toEqual(false)
+    );
+    test("origin", () =>
+      expect(url.origin) |> toEqual(None)
+    );
+    test("host", () =>
+      expect(url.host) |> toEqual(None)
+    );
+    test("hostname", () =>
+      expect(url.hostname) |> toEqual(None)
+    );
+    test("port", () =>
+      expect(url.port) |> toEqual(None)
+    );
+    test("auth", () =>
+      expect(url.auth) |> toEqual(None)
+    );
+    test("username", () =>
+      expect(url.username) |> toEqual(None)
+    );
+    test("password", () =>
+      expect(url.password) |> toEqual(None)
+    );
+    test("pathname", () =>
+      expect(url.pathname) |> toEqual(None)
+    );
+    test("querystring", () =>
+      expect(url.querystring) |> toEqual(None)
+    );
+    test("hash", () =>
+      expect(url.hash) |> toEqual(None)
+    );
+  });
 
   /* test("works when the global variable is not defined", () => {
        let globallet = global;

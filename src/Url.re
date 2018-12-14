@@ -213,7 +213,10 @@ module Rules = {
 
       let pathname =
         switch (Js.Nullable.toOption(captured[1])) {
-        | Some(pathname) => Some(pathname)
+        | Some(pathname) =>
+          Option.flatMap(Str.length(pathname), length =>
+            length > 0 ? Some(pathname) : None
+          )
         | None => None
         };
 
