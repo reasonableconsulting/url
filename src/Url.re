@@ -346,7 +346,7 @@ let resolvePathname = (~to_=?, ~from=?, ()) => {
     "/";
   } else {
     let lastSegment = Arr.last(fromParts);
-    let hasTrailingSlash =
+    let needsTrailingSlash =
       switch (lastSegment) {
       | Some(".")
       | Some("..")
@@ -393,7 +393,7 @@ let resolvePathname = (~to_=?, ~from=?, ()) => {
 
     let result = Arr.join(fromParts, "/");
 
-    if (hasTrailingSlash && !Str.endsWith(result, '/')) {
+    if (needsTrailingSlash && !Str.endsWith(result, '/')) {
       result ++ "/";
     } else {
       result;
@@ -495,35 +495,19 @@ let fromString = address => {
   let rest = Option.getWithDefault(rest, "");
 
   let [hostname, port, host, auth, pathname, querystring, hash] =
-    if (slashes) {
-      Rules.exec(
-        ~rules=[
-          Rules.hash,
-          Rules.querystring,
-          Rules.pathnameWhenSlashes,
-          Rules.auth,
-          Rules.host,
-          Rules.port,
-          Rules.hostname,
-        ],
-        ~results=[],
-        rest,
-      );
-    } else {
-      Rules.exec(
-        ~rules=[
-          Rules.hash,
-          Rules.querystring,
-          Rules.pathnameWhenNoSlashes,
-          Rules.auth,
-          Rules.host,
-          Rules.port,
-          Rules.hostname,
-        ],
-        ~results=[],
-        rest,
-      );
-    };
+    Rules.exec(
+      ~rules=[
+        Rules.hash,
+        Rules.querystring,
+        slashes ? Rules.pathnameWhenSlashes : Rules.pathnameWhenNoSlashes,
+        Rules.auth,
+        Rules.host,
+        Rules.port,
+        Rules.hostname,
+      ],
+      ~results=[],
+      rest,
+    );
 
   let port = Option.flatMap(port, Str.toInt);
 
