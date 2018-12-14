@@ -177,6 +177,7 @@ module Str = {
 let protocolRegExp = [%bs.re {|/^([a-z][a-z0-9.+-]*:)?(\/\/)?([\S\s]*)/i|}];
 let slashesRegExp = [%bs.re {|/^[A-Za-z][A-Za-z0-9+-.]*:\/\//|}];
 let portRegExp = [%bs.re {|/:(\d+)$/|}];
+let pathnameRegExp = [%bs.re {|/(.*)/|}];
 
 module Rules = {
   let hash = address =>
@@ -194,11 +195,32 @@ module Rules = {
   let sanitize = address =>
     String.map(char => char === '\\' ? '/' : char, address);
 
-  let pathname = address => {
+  let pathnameWhenSlashes = address => {
     let address = sanitize(address);
 
     switch (Str.index(address, '/')) {
     | Some(index) => Str.chunkEnd(address, index)
+    | None => (None, address)
+    };
+  };
+
+  let pathnameWhenNoSlashes = address => {
+    let match = Js.Re.exec(address, pathnameRegExp);
+
+    switch (match) {
+    | Some(result) =>
+      let captured = Js.Re.captures(result);
+
+      let pathname =
+        switch (Js.Nullable.toOption(captured[1])) {
+        | Some(pathname) => Some(pathname)
+        | None => None
+        };
+
+      switch (Str.slice(address, 0, Js.Re.index(result))) {
+      | Some(address) => (pathname, address)
+      | None => (pathname, "")
+      };
     | None => (None, address)
     };
   };
@@ -244,12 +266,7 @@ module Rules = {
     | None => (None, address)
     };
 
-  let rec exec =
-          (
-            ~rules=[hash, querystring, pathname, auth, host, port, hostname],
-            ~results=[],
-            address,
-          ) =>
+  let rec exec = (~rules, ~results, address) =>
     switch (rules) {
     | [rule, ...rules] =>
       let (result, address) = rule(address);
@@ -478,7 +495,35 @@ let fromString = address => {
   let rest = Option.getWithDefault(rest, "");
 
   let [hostname, port, host, auth, pathname, querystring, hash] =
-    Rules.exec(rest);
+    if (slashes) {
+      Rules.exec(
+        ~rules=[
+          Rules.hash,
+          Rules.querystring,
+          Rules.pathnameWhenSlashes,
+          Rules.auth,
+          Rules.host,
+          Rules.port,
+          Rules.hostname,
+        ],
+        ~results=[],
+        rest,
+      );
+    } else {
+      Rules.exec(
+        ~rules=[
+          Rules.hash,
+          Rules.querystring,
+          Rules.pathnameWhenNoSlashes,
+          Rules.auth,
+          Rules.host,
+          Rules.port,
+          Rules.hostname,
+        ],
+        ~results=[],
+        rest,
+      );
+    };
 
   let port = Option.flatMap(port, Str.toInt);
 
