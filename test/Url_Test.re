@@ -107,13 +107,13 @@ describe("url-parse", () => {
        |> toEqual("https://gist.github.com/unshiftio/url-parse");
      }); */
 
-  /* test("can parse complex urls multiple times without errors", () => {
-       let url = "https://www.mozilla.org/en-US/firefox/34.0/whatsnew/?oldversion=33.1";
+  describe("can parse complex urls multiple times without errors", () => {
+    let url = "https://www.mozilla.org/en-US/firefox/34.0/whatsnew/?oldversion=33.1";
 
-       for (let i = 0; i < 100; i++) {
-         Url.fromString(url);
-       }
-     }); */
+    let data = Belt.List.makeBy(100, _ => Url.fromString(url));
+
+    testAll("run all", data, parsed => expect(parsed.href) |> toEqual(url));
+  });
 
   test("converts hostname to lowercase", () => {
     let url = "HTTP://fOo.eXaMPle.com";
