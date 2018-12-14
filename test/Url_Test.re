@@ -274,12 +274,12 @@ describe("url-parse", () => {
       expect(parsed.origin) |> toEqual(Some("http://google.com"));
     });
 
-    /* test("sets null if no hostname is specified", () => {
-         let url = "http://";
-         let parsed = Url.fromString(url, {});
+    test("sets to None if no hostname is specified", () => {
+      let url = "http://";
+      let parsed = Url.fromString(url);
 
-         expect(parsed.origin) |> toEqual("null");
-       }); */
+      expect(parsed.origin) |> toEqual(None);
+    });
 
     testAll(
       "removes default ports for http",

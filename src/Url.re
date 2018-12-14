@@ -234,7 +234,11 @@ module Rules = {
   let host = address =>
     /* TODO: add relative stuff? */
     switch (Str.length(address)) {
-    | Some(_) => (Some(Str.lowercase(address)), address)
+    | Some(length) when length > 0 => (
+        Some(Str.lowercase(address)),
+        address,
+      )
+    | Some(_) => (None, address)
     | None => (None, address)
     };
 
@@ -262,7 +266,11 @@ module Rules = {
   let hostname = address =>
     /* TODO: add relative stuff? */
     switch (Str.length(address)) {
-    | Some(_) => (Some(Str.lowercase(address)), address)
+    | Some(length) when length > 0 => (
+        Some(Str.lowercase(address)),
+        address,
+      )
+    | Some(_) => (None, address)
     | None => (None, address)
     };
 
