@@ -297,10 +297,10 @@ describe("url-parse", () => {
       },
     );
 
-    /* test("handles file:// based urls as null", () => {
-         let o = Url.fromString("file://google.com/pathname");
-         expect(o.origin) |> toEqual("null");
-       }); */
+    test("handles file:// based urls as None", () => {
+      let o = Url.fromString("file://google.com/pathname");
+      expect(o.origin) |> toEqual(None);
+    });
 
     testAll(
       "removes default ports for ws",
