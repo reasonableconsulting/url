@@ -2,22 +2,6 @@ open Jest;
 open Expect;
 
 describe("url-parse", () => {
-  /* test("exposes parse as a function", () =>
-       expect(parse) |> toBe("function")
-     );
-
-     test("exposes the querystring module", () =>
-       expect(parse.qs) |> toEqual(require("querystringify"))
-     );
-
-     test("exposes the location function", () =>
-       expect(parse.location) |> toBe("function")
-     );
-
-     test("exposes the extractProtocol function", () =>
-       expect(parse.extractProtocol) |> toBe("function")
-     ); */
-
   /* test("defaults to empty address to return valid URL instance", () => {
        let url = Url.fromString();
 
