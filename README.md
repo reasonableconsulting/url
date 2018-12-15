@@ -1,6 +1,66 @@
 # url
+
 Work with URLs in ReasonML.
 
+[![Travis Build Status][travis-image]][travis-url] [![AppVeyor Build Status][appveyor-image]][appveyor-url]
+
+## Usage
+
+```reason
+let url = Url.fromString("http://google.com/");
+Js.log(url.pathname === Some("/"));
+
+let str = Url.toString(url);
+Js.log(str === "http://google.com/");
+
+/* Or with base location */
+let url = Url.fromString(~location=Url.fromString("http://google.com"), "/foo?foo=bar");
+
+Js.log(url.href === "http://google.com/foo?foo=bar");
+```
+
+## API
+
+### `type t`
+
+The `Url` type. Has the shape:
+```reason
+{
+  href: string,
+  protocol: option(string),
+  slashes: bool,
+  origin: option(string),
+  host: option(string),
+  hostname: option(string),
+  port: option(int),
+  auth: option(string),
+  username: option(string),
+  password: option(string),
+  pathname: option(string),
+  querystring: option(string),
+  hash: option(string),
+}
+```
+
+### `empty`
+
+A completely empty `Url.t`.
+
+### `toString(url)`
+
+Turns a `Url.t` into a string representation.
+
+### `fromString(~location: t=?, string)`
+
+Turns a string into a `Url.t`. Optionally, takes a "base" `Url.t` as `~location`.
+
+### `make(~protocol: string=?, ~slashes: bool=?, ~host: string=?, ~hostname: string=?, ~port: int=?, ~auth: string=?, ~username: string=?, ~password: string=?, ~pathname: string=?, ~querystring: string=?, ~hash: string=?, unit)`
+
+Makes a `Url.t` from all the optional arguments. Useful if you are building up a Url to later stringify.
+
+### `makeWithLocation(~protocol: string=?, ~slashes: bool=?, ~host: string=?, ~hostname: string=?, ~port: int=?, ~auth: string=?, ~username: string=?, ~password: string=?, ~pathname: string=?, ~querystring: string=?, ~hash: string=?, option(t))`
+
+Makes a `Url.t` from all the optional arguments and an `option(Url.t)` representing the "base" location. This method is mostly used internally but made available for other use cases.
 
 ## Inspiration
 
