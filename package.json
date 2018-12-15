@@ -1,20 +1,38 @@
 {
   "name": "@reasonableconsulting/url",
   "version": "0.0.0",
+  "description": "Work with URLs in ReasonML.",
+  "author": "Reasonable Consulting <contact@reasonable.consulting> (https://reasonable.consulting/)",
+  "contributors": [
+    "Blaine Bublitz <blaine.bublitz@gmail.com>"
+  ],
+  "repository": "reasonableconsulting/url",
+  "license": "MPL-2.0",
+  "engines": {
+    "node": ">= 8.0"
+  },
+  "main": "src/Url.bs.js",
+  "files": [
+    "LICENSE",
+    "src",
+    "bsconfig.json"
+  ],
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
     "test": "npm run clean && npm run build && jest --testMatch **/test/*.js"
   },
-  "keywords": [
-    "BuckleScript"
-  ],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.5",
     "bs-platform": "^4.0.8",
     "jest": "^23.6.0"
-  }
+  },
+  "keywords": [
+    "Reason",
+    "ReasonML",
+    "URL",
+    "Parser",
+    "BuckleScript"
+  ]
 }
