@@ -1,6 +1,6 @@
 {
   "name": "@reasonableconsulting/url",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Work with URLs in ReasonML.",
   "author": "Reasonable Consulting <contact@reasonable.consulting> (https://reasonable.consulting/)",
   "contributors": [
