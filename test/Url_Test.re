@@ -1,3 +1,5 @@
+/* Tests originally from https://github.com/unshiftio/url-parse/blob/541b70fe23fa1e1a4d9e78e95de80c053f42e436/test/test.js */
+
 open Jest;
 open Expect;
 
@@ -46,39 +48,6 @@ describe("url-parse", () => {
     );
   });
 
-  /* test("works when the global variable is not defined", () => {
-       let globallet = global;
-       global = undefined;
-       let url = Url.fromString("http://google.com/?foo=bar", true);
-
-       expect(url) |> toBe("object");
-       expect(url.pathname) |> toBe("string");
-       expect(url.host) |> toBe("string");
-       expect(url.hostname) |> toBe("string");
-
-       global = globalVar;
-     }); */
-
-  /* describe("extractProtocol", () => {
-       test("extracts the protocol data", () =>
-         expect(parse.extractProtocol("")).eql({
-           slashes: false,
-           protocol: "",
-           rest: "",
-         })
-       );
-
-       test("does not truncate the input string", () => {
-         let input = "foo\nbar\rbaz\u2028qux\u2029";
-
-         expect(parse.extractProtocol(input)).eql({
-           slashes: false,
-           protocol: "",
-           rest: input,
-         });
-       });
-     }); */
-
   /* test("parses the query string into an object", () => {
        let url = "http://google.com/?foo=bar";
        let data = Url.fromString(url, true);
@@ -99,21 +68,6 @@ describe("url-parse", () => {
 
     expect(data.href) |> toEqual(url);
   });
-
-  /* test("allows a custom function as parser", () => {
-       let url = "http://google.com/?foo=bar";
-       let data = Url.fromString(url, () => "1337");
-
-       expect(data.query) |> toEqual("1337");
-     }); */
-
-  /* test("allows a custom stringify function", () => {
-       let url = "http://google.com/?foo=bar";
-       let data = Url.fromString(url, true);
-
-       let str = data.toString(() => "lolcakes");
-       expect(str) |> toEqual("http://google.com/?lolcakes");
-     }); */
 
   test("allows a custom location object", () => {
     let url = "/foo?foo=bar";

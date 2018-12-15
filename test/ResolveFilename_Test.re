@@ -1,3 +1,5 @@
+/* Tests originally from https://github.com/mjackson/resolve-pathname/blob/20152400021377da9aa5e25fc0846ebe2d17fdcb/modules/__tests__/resolvePathname-test.js */
+
 open Jest;
 open Expect;
 
