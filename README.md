@@ -77,5 +77,5 @@ The `fromString`, `toString`, and `make` implementations are a rewrite of [unshi
 [travis-url]: https://travis-ci.org/reasonableconsulting/url
 [travis-image]: http://img.shields.io/travis/reasonableconsulting/url.svg?label=travis-ci
 
-[appveyor-url]: https://ci.appveyor.com/project/reasonableconsulting/url
-[appveyor-image]: https://img.shields.io/appveyor/ci/reasonableconsulting/url.svg?label=appveyor
+[appveyor-url]: https://ci.appveyor.com/project/phated/url
+[appveyor-image]: https://img.shields.io/appveyor/ci/phated/url.svg?label=appveyor
