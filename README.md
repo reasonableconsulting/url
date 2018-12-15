@@ -1,4 +1,10 @@
-# url
+<p align="left">
+  <a href="https://reasonable.consulting/">
+    <img height="270" width="270" src="https://reasonable.consulting/images/reasonable-logo.png">
+  </a>
+</p>
+
+# @reasonableconsulting/url
 
 Work with URLs in ReasonML.
 
@@ -67,3 +73,9 @@ Makes a `Url.t` from all the optional arguments and an `option(Url.t)` represent
 The `resolvePathname` implementation is a rewrite of [mjackson/resolve-pathname](https://github.com/mjackson/resolve-pathname) - [Originally licensed](https://github.com/mjackson/resolve-pathname/blob/42f1e54748e5d8d861deb0a1f05d5c188fa10b53/LICENSE), MIT License - Copyright (c) Michael Jackson 2016-2018.
 
 The `fromString`, `toString`, and `make` implementations are a rewrite of [unshiftio/url-parse](https://github.com/unshiftio/url-parse) - [Originally licensed](https://github.com/unshiftio/url-parse/blob/6c5842fb07778f6d624f0f886548ce4b40d843d4/LICENSE), MIT License - Copyright (c) 2015 Unshift.io, Arnout Kazemier, the Contributors.
+
+[travis-url]: https://travis-ci.org/reasonableconsulting/url
+[travis-image]: http://img.shields.io/travis/reasonableconsulting/url.svg?label=travis-ci
+
+[appveyor-url]: https://ci.appveyor.com/project/reasonableconsulting/url
+[appveyor-image]: https://img.shields.io/appveyor/ci/reasonableconsulting/url.svg?label=appveyor
